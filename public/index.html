@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Feedback System</title>
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        min-height: 100vh;
+        background: linear-gradient(to bottom right, #0f172a, #1e293b);
+        color: #f8fafc;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px 20px;
+      }
+
+      .container {
+        text-align: center;
+        background-color: #1e293b;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 216, 255, 0.2);
+        width: 100%;
+        max-width: 400px;
+      }
+
+      h1 {
+        font-size: 28px;
+        color: #00d8ff;
+        margin-bottom: 30px;
+        text-shadow: 2px 2px 10px rgba(0, 216, 255, 0.5);
+      }
+
+      button {
+        display: block;
+        width: 100%;
+        padding: 14px;
+        margin: 10px 0;
+        font-size: 16px;
+        font-weight: bold;
+        border: none;
+        border-radius: 10px;
+        background: linear-gradient(90deg, #00d8ff, #38bdf8);
+        color: #000;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 216, 255, 0.15);
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      button:hover:not(:disabled) {
+        background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+      }
+
+      button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+
+      .error-message {
+        color: #f87171;
+        margin-top: 10px;
+        font-size: 14px;
+        display: none;
+        padding: 10px;
+        background-color: rgba(239, 68, 68, 0.1);
+        border-radius: 8px;
+      }
+
+      .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 3px solid #00d8ff;
+        animation: spin 1s linear infinite;
+        margin-right: 8px;
+        vertical-align: middle;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      @media (max-width: 500px) {
+        h1 {
+          font-size: 22px;
+        }
+
+        button {
+          font-size: 15px;
+          padding: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Welcome to Feedback System</h1>
+      <button id="giveFeedbackBtn" onclick="navigateTo('feedback.html')">Give Feedback</button>
+      <button id="viewFeedbackBtn" onclick="navigateTo('view.html')">View Feedback</button>
+      <button id="checkStatusBtn" onclick="navigateTo('check-status.html')">Check Your Feedback Status</button>
+      <div id="errorMessage" class="error-message"></div>
+    </div>
+
+    <script>
+      const BASE_URL = 'http://localhost:4000';
+      
+      async function navigateTo(page) {
+        const buttons = document.querySelectorAll('button');
+        const errorMessage = document.getElementById('errorMessage');
+        const clickedButton = event.target;
+        
+        try {
+          // Disable all buttons and show loading state
+          buttons.forEach(btn => btn.disabled = true);
+          const originalText = clickedButton.textContent;
+          clickedButton.innerHTML = '<span class="loading"></span> Loading...';
+          
+          // Test if the server is reachable
+          const response = await fetch(`${BASE_URL}/api/test`);
+          if (!response.ok) {
+            throw new Error('Server is not responding. Please try again later.');
+          }
+          
+          // If server is reachable, navigate to the page
+          window.location.href = `${BASE_URL}/${page}`;
+        } catch (error) {
+          console.error('Navigation error:', error);
+          errorMessage.textContent = error.message;
+          errorMessage.style.display = 'block';
+          
+          // Reset button state
+          buttons.forEach(btn => btn.disabled = false);
+          clickedButton.textContent = originalText;
+          
+          // Hide error message after 5 seconds
+          setTimeout(() => {
+            errorMessage.style.display = 'none';
+          }, 5000);
+        }
+      }
+
+      // Test server connection on page load
+      window.addEventListener('load', async () => {
+        const errorMessage = document.getElementById('errorMessage');
+        try {
+          const response = await fetch(`${BASE_URL}/api/test`);
+          if (!response.ok) {
+            throw new Error('Server is not responding');
+          }
+          // Clear any existing error message if server is working
+          errorMessage.style.display = 'none';
+        } catch (error) {
+          console.error('Server connection error:', error);
+          errorMessage.textContent = 'Warning: Server connection issues. Please make sure the server is running.';
+          errorMessage.style.display = 'block';
+        }
+      });
+    </script>
+  </body>
+</html>
