@@ -86,9 +86,10 @@ For production deployment, consider implementing:
 
 ## Contact
 
-[Your Name]
-[Your Email]
-[Your LinkedIn/GitHub]
+
+[vamshi krishna]
+[vamshicherry624@gmail.com]
+[github:https://github.com/vamshi335235/feedback-sysytem.git ]
 
 npm run pm2:status  # Check server status
 npm run pm2:stop   # Stop server
