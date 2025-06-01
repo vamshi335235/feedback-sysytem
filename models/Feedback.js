@@ -1,13 +1,34 @@
 const mongoose = require('mongoose');
 
-const FeedbackSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true },
-  message: { type: String, required: true },
-  response: { type: String, default: '' },
-  resolved: { type: Boolean, default: false },
-  approved: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now }
+const feedbackSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true
+  },
+  email: {
+    type: String,
+    required: true
+  },
+  message: {
+    type: String,
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  approved: {
+    type: Boolean,
+    default: null
+  },
+  resolved: {
+    type: Boolean,
+    default: false
+  },
+  response: {
+    type: String,
+    default: ''
+  }
 });
 
-module.exports = mongoose.model('Feedback', FeedbackSchema);
+module.exports = mongoose.model('Feedback', feedbackSchema);
