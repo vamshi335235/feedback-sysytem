@@ -5,15 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>View Feedback</title>
     <style>
-      html,
-      body {
-        height: 100%;
+      * {
         margin: 0;
         padding: 0;
+        box-sizing: border-box;
+      }
+
+      html, body {
+        width: 100%;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+        background: #0f172a;
       }
 
       body {
-        background: linear-gradient(to bottom right, #0f172a, #1e293b);
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         color: #f8fafc;
         display: flex;
@@ -21,15 +27,17 @@
         align-items: flex-start;
         padding: 40px 20px;
         min-height: 100vh;
+        position: relative;
       }
 
       .container {
         width: 100%;
-        max-width: 900px;
+        max-width: 1200px;
         background-color: #1e293b;
         padding: 30px;
         border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0, 216, 255, 0.2);
+        box-shadow: 0 4px 20px rgba(0, 216, 255, 0.1);
+        margin-bottom: 40px;
       }
 
       .header {
@@ -37,6 +45,8 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #334155;
       }
 
       h1 {
@@ -53,42 +63,96 @@
         font-size: 16px;
         font-weight: bold;
         text-decoration: none;
-        color: #000;
+        color: #0f172a;
         background: linear-gradient(90deg, #00d8ff, #38bdf8);
         border-radius: 8px;
-        transition: transform 0.2s ease;
+        transition: all 0.2s ease;
       }
 
       .back-button:hover {
-        background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+        background: linear-gradient(90deg, #38bdf8, #00d8ff);
         transform: scale(1.05);
+        box-shadow: 0 4px 15px rgba(0, 216, 255, 0.3);
+      }
+
+      .feedback-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        gap: 25px;
+        width: 100%;
       }
 
       .feedback-item {
-        background-color: #0f172a;
+        background-color: #1e293b;
         border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 10px rgba(0, 216, 255, 0.05);
+        padding: 25px;
         border: 1px solid #334155;
+        box-shadow: 0 2px 10px rgba(0, 216, 255, 0.05);
+        min-height: 250px;
+        max-height: 250px;
+        width: auto;
+        overflow-y: auto;
+        box-sizing: border-box;
+        scrollbar-width: thin;
+        scrollbar-color: #334155 #1e293b;
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .feedback-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 216, 255, 0.15);
+        background-color: #233044;
+      }
+
+      .feedback-item::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .feedback-item::-webkit-scrollbar-track {
+        background: #1e293b;
+      }
+
+      .feedback-item::-webkit-scrollbar-thumb {
+        background-color: #334155;
+        border-radius: 4px;
+      }
+
+      .feedback-item::-webkit-scrollbar-thumb:hover {
+        background-color: #475569;
       }
 
       .feedback-item strong {
         color: #38bdf8;
-        font-size: 1.1em;
+        font-size: 1.2em;
       }
 
       .feedback-meta {
         color: #94a3b8;
-        font-size: 0.9em;
-        margin: 5px 0 15px 0;
+        font-size: 1em;
+        margin: 8px 0 12px 0;
+        flex: 0 0 auto;
       }
 
       .feedback-message {
         color: #f8fafc;
         line-height: 1.6;
-        margin-top: 10px;
+        margin: 12px 0;
         white-space: pre-wrap;
+        flex: 1 1 auto;
+        overflow-y: auto;
+        padding-right: 10px;
+        font-size: 1.05em;
+      }
+
+      .feedback-status,
+      .feedback-response {
+        flex: 0 0 auto;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #334155;
       }
 
       .loading {
@@ -142,23 +206,145 @@
         100% { transform: rotate(360deg); }
       }
 
-      @media (max-width: 600px) {
+      @media (max-width: 768px) {
+        .feedback-grid {
+          grid-template-columns: 1fr;
+        }
+        
         .container {
-          padding: 20px;
+          padding: 15px;
         }
-
-        .header {
-          flex-direction: column;
-          gap: 20px;
+        
+        .feedback-item {
+          min-height: 200px;
+          max-height: 200px;
         }
+      }
 
-        .back-button {
-          width: 100%;
-          text-align: center;
+      /* Add modal styles */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.75);
+        z-index: 1000;
+        backdrop-filter: blur(4px);
+      }
+
+      .modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #1e293b;
+        padding: 40px;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 4px 30px rgba(0, 216, 255, 0.3);
+        z-index: 1001;
+      }
+
+      .modal-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: none;
+        border: none;
+        color: #94a3b8;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 5px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+      }
+
+      .modal-close:hover {
+        background-color: rgba(148, 163, 184, 0.1);
+        color: #f8fafc;
+      }
+
+      .modal-content {
+        margin-top: 20px;
+      }
+
+      .modal .feedback-message {
+        max-height: none;
+        font-size: 1.1em;
+        line-height: 1.8;
+        margin: 25px 0;
+        padding: 20px;
+        background-color: #233044;
+        border-radius: 8px;
+      }
+
+      .modal .feedback-meta {
+        font-size: 1.1em;
+        margin: 15px 0;
+        padding: 15px 0;
+        border-bottom: 1px solid #334155;
+      }
+
+      .modal .feedback-response {
+        margin-top: 25px;
+        padding: 20px;
+        background-color: #233044;
+        border-radius: 8px;
+      }
+
+      .feedback-item::-webkit-scrollbar,
+      .modal::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .feedback-item::-webkit-scrollbar-track,
+      .modal::-webkit-scrollbar-track {
+        background: #1e293b;
+      }
+
+      .feedback-item::-webkit-scrollbar-thumb,
+      .modal::-webkit-scrollbar-thumb {
+        background-color: #334155;
+        border-radius: 4px;
+      }
+
+      .feedback-item::-webkit-scrollbar-thumb:hover,
+      .modal::-webkit-scrollbar-thumb:hover {
+        background-color: #475569;
+      }
+
+      /* Add animation classes */
+      .modal-overlay.fade-in {
+        animation: fadeIn 0.3s ease forwards;
+      }
+
+      .modal.slide-in {
+        animation: slideIn 0.3s ease forwards;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translate(-50%, -45%);
         }
-
-        h1 {
-          font-size: 24px;
+        to {
+          opacity: 1;
+          transform: translate(-50%, -50%);
         }
       }
     </style>
@@ -172,8 +358,88 @@
       <div id="feedbackList" class="loading">Loading feedback...</div>
     </div>
 
+    <!-- Add modal HTML -->
+    <div id="feedbackModal" class="modal-overlay">
+      <div class="modal">
+        <button class="modal-close">×</button>
+        <div class="modal-content"></div>
+      </div>
+    </div>
+
     <script>
       const feedbackList = document.getElementById("feedbackList");
+      const modal = document.getElementById("feedbackModal");
+      const modalContent = modal.querySelector(".modal-content");
+      const modalClose = modal.querySelector(".modal-close");
+
+      // Close modal when clicking outside or on close button
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+          closeModal();
+        }
+      });
+
+      modalClose.addEventListener("click", closeModal);
+
+      // Close modal with Escape key
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && modal.style.display === "block") {
+          closeModal();
+        }
+      });
+
+      function openModal(feedback) {
+        modalContent.innerHTML = `
+          <h2 style="color: #00d8ff; font-size: 1.5em; margin-bottom: 20px;">
+            Feedback from ${feedback.name}
+          </h2>
+          <div class="feedback-meta">
+            <div style="margin-bottom: 10px;">
+              <strong style="color: #38bdf8;">Submitted on:</strong> ${formatDate(feedback.createdAt)}
+            </div>
+            <div>
+              <strong style="color: #38bdf8;">Email:</strong> ${feedback.email}
+            </div>
+          </div>
+          <div class="feedback-message">
+            ${feedback.message}
+          </div>
+          ${feedback.response ? `
+            <div class="feedback-response">
+              <strong style="color: #22c55e; display: block; margin-bottom: 10px;">Response:</strong>
+              <div style="color: #94a3b8;">
+                ${feedback.response}
+              </div>
+            </div>
+          ` : ''}
+          ${feedback.approved !== null ? `
+            <div class="feedback-status" style="margin-top: 20px;">
+              <span style="
+                background-color: ${feedback.approved ? '#22c55e' : '#ef4444'}; 
+                color: ${feedback.approved ? '#000' : '#fff'}; 
+                padding: 6px 12px; 
+                border-radius: 12px; 
+                font-size: 1em; 
+                font-weight: bold;"
+              >
+                ${feedback.approved ? 'Approved' : 'Rejected'}
+              </span>
+            </div>
+          ` : ''}
+        `;
+        
+        modal.style.display = "block";
+        modal.classList.add("fade-in");
+        modal.querySelector(".modal").classList.add("slide-in");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeModal() {
+        modal.classList.remove("fade-in");
+        modal.querySelector(".modal").classList.remove("slide-in");
+        modal.style.display = "none";
+        document.body.style.overflow = "";
+      }
 
       function formatDate(dateString) {
         const options = { 
@@ -188,7 +454,6 @@
 
       async function loadFeedback() {
         try {
-          // First check if server is reachable
           const testResponse = await fetch("http://localhost:4000/api/test");
           if (!testResponse.ok) {
             throw new Error("Cannot connect to server");
@@ -211,10 +476,11 @@
             return;
           }
 
+          feedbackList.className = "feedback-grid";
           feedbackList.innerHTML = data
             .map(
-              (f) => `
-                <div class="feedback-item">
+              (f, index) => `
+                <div class="feedback-item" onclick="openModal(${JSON.stringify(f).replace(/"/g, '&quot;')})">
                   <strong>${f.name}</strong>
                   <div class="feedback-meta">
                     ${formatDate(f.createdAt)}<br>
@@ -223,6 +489,28 @@
                   <div class="feedback-message">
                     ${f.message}
                   </div>
+                  ${f.response ? `
+                    <div class="feedback-response">
+                      <strong style="color: #22c55e;">Response:</strong>
+                      <div style="color: #94a3b8; margin-top: 5px;">
+                        ${f.response}
+                      </div>
+                    </div>
+                  ` : ''}
+                  ${f.approved !== null ? `
+                    <div class="feedback-status">
+                      <span style="
+                        background-color: ${f.approved ? '#22c55e' : '#ef4444'}; 
+                        color: ${f.approved ? '#000' : '#fff'}; 
+                        padding: 4px 8px; 
+                        border-radius: 12px; 
+                        font-size: 0.9em; 
+                        font-weight: bold;"
+                      >
+                        ${f.approved ? 'Approved' : 'Rejected'}
+                      </span>
+                    </div>
+                  ` : ''}
                 </div>
               `
             )
